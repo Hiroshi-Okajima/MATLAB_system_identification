@@ -6,9 +6,6 @@ This repository accompanies the blog hub article:
 **[System Identification: From Data to Dynamical Models — A Comprehensive Guide](https://blog.control-theory.com/entry/system-identification)**
 
 Each folder contains MATLAB scripts with explanatory comments. The codes are designed to be self-contained and educational — run them directly in MATLAB to reproduce the results discussed in the corresponding blog articles and papers.
-
-[![Open in MATLAB Online](https://www.mathworks.com/images/responsive/global/open-in-matlab-online.svg)](https://matlab.mathworks.com/open/github/v1?repo=Hiroshi-Okajima/MATLAB_system_identification)
-
 ---
 
 ## Repository Structure
