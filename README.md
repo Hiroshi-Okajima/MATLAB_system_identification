@@ -6,6 +6,7 @@ This repository accompanies the blog hub article:
 **[System Identification: From Data to Dynamical Models — A Comprehensive Guide](https://blog.control-theory.com/entry/system-identification)**
 
 Each folder contains MATLAB scripts with explanatory comments. The codes are designed to be self-contained and educational — run them directly in MATLAB to reproduce the results discussed in the corresponding blog articles and papers.
+
 ---
 
 ## Repository Structure
@@ -17,7 +18,6 @@ Each folder contains MATLAB scripts with explanatory comments. The codes are des
 | `03_lptv_cyclic_sysid/` | Cyclic reformulation for LPTV systems | [Cyclic Reformulation-Based System Identification for LPTV Systems](https://blog.control-theory.com/entry/2026/03/04/232709) | [IEEE Access 2025](https://doi.org/10.1109/ACCESS.2025.3537086) |
 | `04_multirate_sysid/` | Multirate system identification | [System Identification Under Multirate Sensing Environments](https://blog.control-theory.com/entry/2026/03/04/233302) | [JRM 2025 (Open Access)](https://doi.org/10.20965/jrm.2025.p1102) |
 | `05_parametric_pem/` | ARX, ARMAX, OE, BJ, and the prediction error method | [Classical Parametric System Identification: ARX, ARMAX, and the PEM](https://blog.control-theory.com/entry/parametric-identification) | — (educational) |
-| `common/` | Shared utility functions | — | — |
 
 ---
 
@@ -118,6 +118,7 @@ Demonstrates the four classical parametric model structures (ARX, ARMAX, Output-
 - [State Observer and State Estimation](https://blog.control-theory.com/entry/state-observer-estimation)
 - [Model Error Compensator (MEC)](https://blog.control-theory.com/entry/model-error-compensator-eng)
 - [LMIs and Controller Design](https://blog.control-theory.com/entry/lmi-eng)
+- [Discretization of Continuous-Time Control Systems](https://blog.control-theory.com/entry/discretization-eng)
 
 ### Research Web Pages
 
@@ -137,6 +138,7 @@ Demonstrates the four classical parametric model structures (ARX, ARMAX, Output-
 
 ### Other GitHub Repositories
 
+- [MATLAB_state_observer](https://github.com/Hiroshi-Okajima/MATLAB_state_observer) — State observer and estimation codes (observer design uses identified models)
 - [MATLAB_fandamental_control_LMI](https://github.com/Hiroshi-Okajima/MATLAB_fandamental_control_LMI) — LMI-based control design
 - [Robust-control-MATLAB_MEC01](https://github.com/Hiroshi-Okajima/Robust-control-MATLAB_MEC01) — Model Error Compensator
 
