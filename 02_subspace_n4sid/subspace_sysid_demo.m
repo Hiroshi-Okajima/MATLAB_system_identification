@@ -1,8 +1,10 @@
-%% subspace_sysid_demo.m
+%% subspace_sysid_demo.m  (v2 — close poles + colored noise)
 %  Subspace Identification: N4SID, MOESP, and CVA Comparison
 %
 %  This script demonstrates the three major subspace identification
 %  algorithms on the same dataset and compares their results.
+%  The plant has close poles and the noise is colored, creating
+%  a challenging scenario where the three methods show distinct behavior.
 %
 %  Blog: https://blog.control-theory.com/entry/subspace-identification
 %  Hub:  https://blog.control-theory.com/entry/system-identification
@@ -13,14 +15,12 @@
 clear; close all; clc;
 
 %% 1. Define the true plant (3rd-order, 1 input, 2 outputs)
-%  All three modes are well-separated and contribute significantly
-%  to the output, so SVD clearly shows 3 significant singular values.
+%  Close poles make identification harder and reveal algorithmic differences.
 Ts = 0.1;
 
-% 3rd-order state-space: three distinct real poles at 0.9, 0.5, -0.3
-%  (well-separated => clear 3rd-order signature in SVD)
-A = diag([0.9, 0.5, -0.3]);
-B = [1; 1; 1];
+% 3rd-order state-space: three close real poles at 0.85, 0.80, 0.75
+A = diag([0.85, 0.80, 0.75]);
+B = [1; 0.8; 0.5];
 C = [1 1 0.5;
      0.5 -1 1];
 D = [0; 0];
@@ -31,24 +31,32 @@ n_true = size(A, 1);  % True system order = 3
 fprintf('=== True Plant ===\n');
 fprintf('Order: %d,  Inputs: %d,  Outputs: %d\n', ...
     n_true, size(B,2), size(C,1));
-fprintf('Poles: %.1f, %.1f, %.1f (well-separated)\n\n', eig(A));
+fprintf('Poles: %.2f, %.2f, %.2f (close together)\n\n', eig(A));
 
-%% 2. Generate input-output data
+%% 2. Generate input-output data with colored noise
 N = 3000;
-rng(123);
+rng(42);
 u = randn(N, 1);
 
 y_clean = lsim(sys_true, u);
-noise_std = 0.05;
-e = noise_std * randn(N, size(C,1));
-y = y_clean + e;
+
+% Colored noise: white noise filtered through a 1st-order system
+%   H(z) = 1 / (1 - 0.8 z^{-1})  — strongly colored
+noise_std = 0.3;
+e_white = noise_std * randn(N, size(C,1));
+noise_filter = tf(1, [1, -0.8], Ts);
+e_colored = zeros(N, size(C,1));
+for i = 1:size(C,1)
+    e_colored(:,i) = lsim(noise_filter, e_white(:,i));
+end
+y = y_clean + e_colored;
 
 data = iddata(y, u, Ts);
 data_est = data(1:2000);
 data_val = data(2001:end);
 
 fprintf('Data: %d samples (est: %d, val: %d)\n', N, 2000, 1000);
-fprintf('Noise std: %.3f\n\n', noise_std);
+fprintf('Noise std: %.2f (colored, pole at 0.8)\n\n', noise_std);
 
 %% 3. Model order selection (no GUI)
 fprintf('=== Model Order Selection ===\n');
@@ -97,10 +105,6 @@ sys_cva = n4sid(data_est, n, opt_cva);
 fprintf('=== Identification Complete (order = %d) ===\n', n);
 
 %% 5. Compare on validation data
-%  Use manual simulation + plot instead of compare() to avoid
-%  Japanese locale labels entirely.
-
-% Simulate each model on validation input
 u_val = data_val.u;
 y_val = data_val.y;
 t_val = (0:length(u_val)-1)' * Ts;
@@ -163,38 +167,45 @@ for i = 1:size(C, 1)
     fprintf('Output %d:  ssest = %.1f%%\n', i, fit_ssest(i));
 end
 
-%% 7. Bode plot comparison (manual plot — avoids locale issues)
+%% 7. Bode plot comparison
 figure('Name', 'Bode Plot: True vs Identified');
 
 w = logspace(-1, log10(pi/Ts), 200);
 [mag_true, ph_true] = bode(sys_true, w);
 [mag_n4sid_b, ph_n4sid_b] = bode(sys_n4sid, w);
+[mag_moesp_b, ph_moesp_b] = bode(sys_moesp, w);
+[mag_cva_b, ph_cva_b] = bode(sys_cva, w);
 [mag_ssest_b, ph_ssest_b] = bode(sys_ssest, w);
 
 % Plot magnitude for output 1, input 1
 subplot(2,1,1);
-semilogx(w, 20*log10(squeeze(mag_true(1,1,:))), 'b-', 'LineWidth', 1.5); hold on;
+semilogx(w, 20*log10(squeeze(mag_true(1,1,:))), 'k-', 'LineWidth', 2); hold on;
 semilogx(w, 20*log10(squeeze(mag_n4sid_b(1,1,:))), 'r--', 'LineWidth', 1);
-semilogx(w, 20*log10(squeeze(mag_ssest_b(1,1,:))), 'g-.', 'LineWidth', 1);
+semilogx(w, 20*log10(squeeze(mag_moesp_b(1,1,:))), 'b-.', 'LineWidth', 1);
+semilogx(w, 20*log10(squeeze(mag_cva_b(1,1,:))), 'g:', 'LineWidth', 1.2);
+semilogx(w, 20*log10(squeeze(mag_ssest_b(1,1,:))), 'm-', 'LineWidth', 1);
 hold off; grid on;
 ylabel('Magnitude (dB)', 'FontSize', 12);
 title('Bode Plot: Output 1 / Input 1', 'FontSize', 13);
-legend('True', 'N4SID', 'ssest (N4SID+PEM)', 'FontSize', 10, 'Location', 'southwest');
+legend('True', 'N4SID', 'MOESP', 'CVA', 'ssest (N4SID+PEM)', ...
+    'FontSize', 9, 'Location', 'southwest');
 
 % Plot phase for output 1, input 1
 subplot(2,1,2);
-semilogx(w, squeeze(ph_true(1,1,:)), 'b-', 'LineWidth', 1.5); hold on;
+semilogx(w, squeeze(ph_true(1,1,:)), 'k-', 'LineWidth', 2); hold on;
 semilogx(w, squeeze(ph_n4sid_b(1,1,:)), 'r--', 'LineWidth', 1);
-semilogx(w, squeeze(ph_ssest_b(1,1,:)), 'g-.', 'LineWidth', 1);
+semilogx(w, squeeze(ph_moesp_b(1,1,:)), 'b-.', 'LineWidth', 1);
+semilogx(w, squeeze(ph_cva_b(1,1,:)), 'g:', 'LineWidth', 1.2);
+semilogx(w, squeeze(ph_ssest_b(1,1,:)), 'm-', 'LineWidth', 1);
 hold off; grid on;
 xlabel('Frequency (rad/s)', 'FontSize', 12);
 ylabel('Phase (deg)', 'FontSize', 12);
-legend('True', 'N4SID', 'ssest (N4SID+PEM)', 'FontSize', 10, 'Location', 'southwest');
+legend('True', 'N4SID', 'MOESP', 'CVA', 'ssest (N4SID+PEM)', ...
+    'FontSize', 9, 'Location', 'southwest');
 
-%% 8. Residual analysis (manual autocorrelation — avoids locale issues)
+%% 8. Residual analysis
 fprintf('\n=== Residual Analysis ===\n');
 
-% Compute residuals from ssest model
 y_pred = predict(sys_ssest, data_val, 1);
 residuals = y_val - y_pred.y;
 
@@ -202,7 +213,6 @@ max_lag = 25;
 figure('Name', 'Residual Analysis (ssest)');
 
 for i = 1:size(C,1)
-    % Autocorrelation of residuals
     [acf, lags] = xcorr(residuals(:,i), max_lag, 'coeff');
     
     subplot(size(C,1), 2, 2*(i-1)+1);
@@ -211,7 +221,6 @@ for i = 1:size(C,1)
     ylabel('Autocorrelation', 'FontSize', 11);
     title(sprintf('Output %d: Residual Autocorrelation', i), 'FontSize', 12);
     grid on;
-    % 99% confidence bounds
     N_val = length(residuals);
     conf = 2.576 / sqrt(N_val);
     hold on;
@@ -219,14 +228,13 @@ for i = 1:size(C,1)
     plot(xlim, [-conf -conf], 'r--', 'LineWidth', 0.8);
     hold off;
     
-    % Cross-correlation between residuals and input
     [ccf, lags_c] = xcorr(residuals(:,i), u_val, max_lag, 'coeff');
     
     subplot(size(C,1), 2, 2*(i-1)+2);
     stem(lags_c, ccf, 'b', 'MarkerSize', 3);
     xlabel('Lag', 'FontSize', 11);
     ylabel('Cross-correlation', 'FontSize', 11);
-    title(sprintf('Output %d: Residual-Input Cross-correlation', i), 'FontSize', 12);
+    title(sprintf('Output %d: Residual-Input Cross-corr.', i), 'FontSize', 12);
     grid on;
     hold on;
     plot(xlim, [conf conf], 'r--', 'LineWidth', 0.8);
@@ -240,11 +248,24 @@ sgtitle('Residual Analysis: ssest model (99% confidence bounds in red)', 'FontSi
 fprintf('\n=== Eigenvalue Comparison ===\n');
 eig_true  = sort(real(eig(A)));
 eig_n4sid = sort(real(eig(sys_n4sid.A)));
+eig_moesp = sort(real(eig(sys_moesp.A)));
+eig_cva   = sort(real(eig(sys_cva.A)));
 eig_ssest = sort(real(eig(sys_ssest.A)));
 
-fprintf('%-12s  %-12s  %-12s\n', 'True', 'N4SID', 'ssest');
+fprintf('%-12s  %-12s  %-12s  %-12s  %-12s\n', ...
+    'True', 'N4SID', 'MOESP', 'CVA', 'ssest');
 for i = 1:n_true
-    fprintf('%12.4f  %12.4f  %12.4f\n', eig_true(i), eig_n4sid(i), eig_ssest(i));
+    fprintf('%12.4f  %12.4f  %12.4f  %12.4f  %12.4f\n', ...
+        eig_true(i), eig_n4sid(i), eig_moesp(i), eig_cva(i), eig_ssest(i));
+end
+
+%% 10. Summary table
+fprintf('\n=== Summary: Validation Fit (%%) ===\n');
+fprintf('%-10s  %-10s  %-10s  %-10s  %-10s\n', ...
+    'Output', 'N4SID', 'MOESP', 'CVA', 'ssest');
+for i = 1:size(C,1)
+    fprintf('%-10d  %8.1f%%  %8.1f%%  %8.1f%%  %8.1f%%\n', ...
+        i, fit_n4sid(i), fit_moesp(i), fit_cva(i), fit_ssest(i));
 end
 
 fprintf('\nDone. See figures for visual results.\n');
