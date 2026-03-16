@@ -27,8 +27,8 @@ Each folder contains MATLAB scripts with explanatory comments. The codes are des
 ### Requirements
 
 - **MATLAB** R2020b or later
-- **System Identification Toolbox** (for `n4sid`, `arx`, `armax`, `pem`, `ssest`)
-- **Control System Toolbox** (for `tf`, `ss`, `bode`)
+- **System Identification Toolbox** (for `n4sid`, `arx`, `armax`, `pem`, `ssest`, `impulseest`)
+- **Control System Toolbox** (for `tf`, `ss`, `bode`, `balred`)
 - **Robust Control Toolbox** (for LMI-related examples in `03_lptv_cyclic_sysid/`)
 
 ### Running the Examples
@@ -104,6 +104,17 @@ Demonstrates the four classical parametric model structures (ARX, ARMAX, Output-
 - Residual analysis with `resid`
 - Comparison between parametric and subspace approaches
 
+### 06_kernel_based — Kernel-Based Regularized System Identification
+
+Demonstrates kernel-based regularized impulse response estimation using `impulseest` with TC, SS, and DC kernels. Compares with unregularized (ordinary least squares) FIR and parametric ARX. Includes visualization of kernel matrices and the effect of data length on estimation quality.
+
+**What you will learn:**
+- Using `impulseest` with different regularization kernels (`'TC'`, `'SS'`, `'DC'`, `'none'`)
+- How kernel matrices encode prior knowledge (exponential decay, smoothness)
+- Why regularization helps with short data and low SNR
+- Converting regularized FIR models to state-space via `balred`
+- Comparison between kernel-based and parametric (ARX) approaches
+
 ---
 
 ## Related Resources
@@ -114,6 +125,7 @@ Demonstrates the four classical parametric model structures (ARX, ARMAX, Output-
 - [System Identification: Obtaining Dynamical Model](https://blog.control-theory.com/entry/2024/10/03/151451)
 - [Subspace System Identification: N4SID, MOESP, and CVA](https://blog.control-theory.com/entry/subspace-identification)
 - [Classical Parametric System Identification: ARX, ARMAX, and the PEM](https://blog.control-theory.com/entry/parametric-identification)
+- [Kernel-Based System Identification: Regularized Impulse Response Estimation](https://blog.control-theory.com/entry/kernel-based-identification)
 - [Cyclic Reformulation-Based System Identification for LPTV Systems](https://blog.control-theory.com/entry/2026/03/04/232709)
 - [System Identification Under Multirate Sensing Environments](https://blog.control-theory.com/entry/2026/03/04/233302)
 - [State Observer and State Estimation](https://blog.control-theory.com/entry/state-observer-estimation)
