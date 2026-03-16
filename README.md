@@ -18,6 +18,7 @@ Each folder contains MATLAB scripts with explanatory comments. The codes are des
 | `03_lptv_cyclic_sysid/` | Cyclic reformulation for LPTV systems | [Cyclic Reformulation-Based System Identification for LPTV Systems](https://blog.control-theory.com/entry/2026/03/04/232709) | [IEEE Access 2025](https://doi.org/10.1109/ACCESS.2025.3537086) |
 | `04_multirate_sysid/` | Multirate system identification | [System Identification Under Multirate Sensing Environments](https://blog.control-theory.com/entry/2026/03/04/233302) | [JRM 2025 (Open Access)](https://doi.org/10.20965/jrm.2025.p1102) |
 | `05_parametric_pem/` | ARX, ARMAX, OE, BJ, and the prediction error method | [Classical Parametric System Identification: ARX, ARMAX, and the PEM](https://blog.control-theory.com/entry/parametric-identification) | — (educational) |
+| `06_kernel_based/` | Kernel-based regularized impulse response estimation | [Kernel-Based System Identification](https://blog.control-theory.com/entry/kernel-based-identification) | — (educational) |
 
 ---
 
